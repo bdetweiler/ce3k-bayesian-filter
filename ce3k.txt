@@ -1,0 +1,156 @@
+Casual Encounters of the Third Kind
+By Brian Detweiler
+
+
+Introduction
+
+Are you a single male? Are you looking for no strings attached sex?
+Are you looking for an easy way to pick up easy women? Then look no further
+than Craigslist Casual Encounters! It's the place to find thousands of single
+horny women looking for exactly the same thing! ...or is it?
+
+In this article, I scientifically examine the myth of Craigslist
+Casual Encounters. I focus on w4m (women4men) in the Omaha, Nebraska location,
+since I am a man, Omaha is where I live and obviously, those were the things
+I was most interested in finding out about. This research could (and should)
+be expanded to other cities, as well as other keywords.
+
+The Idea
+
+I have long held the belief that sexually frustrated men everywhere are being
+taken advantage of in our society. Everything from girls asking for free drinks
+at bars to pay websites like AdultFriendFinder.com charging money for finding
+women to hook up with. Craigslist, however is free, minimalistic designed,
+and used by millions of people around the globe. It seems like the perfect way
+to fulfill your desires and not be taken advantage of.
+
+But, where there are trusting people, there will always be enterprising
+no-goodnicks trying to ruin the fun for everyone. Enter the Craigslist spammer.
+How does one spam on Craigslist? There are two ways. The obvious, and quickly
+detected method of dropping website links directly in a posting, and the
+more underhanded, legitimate-looking post that waits for you to email them
+so they can send you deceptive spam emails.
+
+Make no mistake, this is spam. But unlike traditional spam, you are essentially
+opting in by viewing and replying to postings. Unfortunately, traditional
+spam filters work by catching incoming emails. The popular Bayesian spam filter
+keeps a database of words and their "spaminess." So, how could we apply that
+to Craigslist?
+
+Bayesian spam filters must be trained. You must start off with decently sized
+corpuses of spam and ham text. Then you are responsible for training the filter
+by telling it if a body of text is bad. It occurred to me that for this to
+happen, I would have to go to Craigslist, rather than Craigslist coming to me.
+
+The plan is relatively simple: Scrape Craigslist every five minutes, logging
+entries into a database. When an entry becomes "flagged," that is logged too.
+The theory being, if a posting is flagged, it is likely spam. There is a
+small problem with this theory, and I will expand on it later, but for now,
+we will assume any entry that is flagged is indeed, spam.
+
+The Implementation
+
+I wrote a fairly simple PHP script for this project that uses Curl to scrape
+Craigslist and store the results in a PostgreSQL database. When I had it
+working, I simply added it to CRON and let it run for a few months.
+(Yes, a few months). Then, when I had enough data (5,500 records, in this
+case), I began to write my Bayesian filter.
+
+For those of you unfamiliar with Bayesian classification, I suggest you read
+Paul Graham's famous essay in which he discusses the
+virtues of statistical spam filtering. [1] Essentially, the way this works is,
+by taking two corpuses of text (one that is predetermined to be spam, and
+one that is predetermined to be ham), you just need to store the individual
+tokens into a hash map and keep track of how many are spam vs. ham. Then,
+using Bayes' Rule, you can calculate the probability that a posting is spam
+given an "interesting" word in that text.
+
+I used the implementation found at [3] and translated it into PHP.
+So, each time you fire it up, it pulls out all the posts in the database,
+stores them into a hash table as individual tokens, and then that is our
+lookup table. Then, it hits Craigslist, and reads through each post, and
+does the statistical comparison on them. If a post is lower than 90% spam
+probability (we're being generous here), it gets displayed along with its
+probability.
+
+Findings
+
+The statistical filter looks to be working with great accuracy, just as
+Paul Graham had mentioned it would on email spam. But some of my findings came
+before I even wrote the filter, and was just examining the raw data.
+
+Currently, my database has a total of 5,545 postings, of which, 3,936
+have been flagged (likely spam). That is, almost 71% of all postings are not
+legit. Furthermore, I kept track of which postings had pictures. Given that
+most girls who post on Casual Encounters would DIE if anyone knew about it
+(God forbid anyone find out they like sex), I reasoned that it would be rare
+to see a legitimate post containing a picture.  That was also proven in the
+statistics. Of the 4,565 postings with pictures, 3,468 were flagged
+(almost 76%).
+
+In the current implementation, this is not taken into account, but if one could
+assign a weight to postings with pictures, this could add to the accuracy.
+
+Caveats
+
+The biggest concern I had when doing this was determining how to define spam.
+The only way you could be 100% certain if a post was spam would be to reply to
+it and get an email for a spam website in return. I did attempt this method
+in the beginning, but found it to be extremely inefficient for two reasons:
+The mail host (Gmail in my case) puts a cap on email, so as to curb spam.
+We should all be thankful for that, but the rapid fire-ness of my script was
+getting me kicked off pretty fast. And two, Craigslist ALSO curbs spam in this
+way. I should also mention the third reason; this is slightly unethical,
+actually making ME a spammer. So I scrapped this idea early on, and decided
+that anything that gets flagged shall be considered spam.
+
+Unfortunately, this is far from accurate. Many legit posts will get flagged
+for no reason whatsoever. Maybe the girl doesn't reply to someone so he gets
+mad and flags her. This is unfortunate, but it is the best method we have
+right now. Fortunately, it is not often that a spam post will go unflagged,
+so we can be reasonably sure that our ham corpus is clean. The only thing
+we need worry about are false positives, and the filter is pretty inherently
+forgiving, per Graham's suggestion.
+
+Hacking the Script
+
+This script is mostly proof-of-concept and is not really fit for mass
+consumption. One idea would be to provide this as a service. A user comes to
+the site, enters their city, and the current postings are displayed. Maybe
+even pushed out as an RSS feed. I don't have the cash for a decent host, and
+I'm really not sure this isn't violating Craigslist's TOS, but I'm guessing it
+probably is. Currently, Craigslist does not have an API, so we are reduced
+to screenscraping, which is generally frowned upon.
+
+Another idea I had was to write a Greasemonkey script or Firefox addon that
+would do all the filtering as you went to the site, but this could prove
+difficult for a couple of reasons. The filtering relies on the subject and
+the body of the post. On the main listings page, you are only given the
+subject, so you would have to do an Ajax call to get the body. The other
+problem is memory. I had to increase PHP's memory space to around 100 MB to
+satisfy the requirements of the hash table. Keeping such a hash table around in
+memory in Firefox does NOT sound like something anyone would want.
+
+Going back to the issue of not being 100% sure something is spam, even though
+it's been flagged, I did consider using Fuzzy Logic to assist in assigning
+values to the tokens, assigning an arbitrary precision to spam vs. ham.
+For instance, saying that we are only 75% sure that everything in the spam
+corpus is actually spam, we could scale the percentage that a word is spam.
+This was only briefly considered, but I decided that I was happy with the
+way things were without it.
+
+Conclusion
+
+Sorry, gentlemen. It appears that Craigslist is, in fact, NOT the Holy Grail
+of free sex. This tool, however, can greatly cut down on the wasted time of
+writing to spammers. So if you're going to use the site, why not increase your
+odds?
+
+Sources
+
+[1] "A Plan for Spam." Paul Graham. http://www.paulgraham.com/spam.html
+[2] "Better Bayesian Filtering." Paul Graham.
+http://www.paulgraham.com/better.html
+[3] "Bayesian Filtering." http://www.shiffman.net/teaching/a2z/bayesian/
+[4] "Bayesian spam filtering."
+http://en.wikipedia.org/wiki/Bayesian_spam_filtering
