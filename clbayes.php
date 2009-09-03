@@ -50,20 +50,27 @@ require_once 'owner.php';
 require_once 'tokenizer.php';
 require_once 'curl.php';
 require_once 'grepper.php';
+require_once 'spyc.php';
 
 $curl = new Curl();
 $owner = new owner();
 $grepper = new grepper();
 $tokenizer = new Tokenizer();
+$spyc = new Spyc();
+
+$config = $this->spyc->YAMLLoad('../ce3k.yaml');
+
+$memoryLimit = $config['memory-limit'];
 
 // Depending on your corpus size, the default memory will need to be set to
 // something fairly large, as the hashtable takes up a good deal of memory.
-ini_set("memory_limit", "100M");
+ini_set("memory_limit", $memoryLimit);
 
 // This is the amount of spam tolerance we are willing to accomodate for.
-$threshold = 0.90;
-$cityUrl = "http://omaha.craigslist.org";
-$searchTerm = "/search/cas/?query=w4m";
+$threshold = $config['bayes']['threshold'];
+
+$cityUrl = $config['city-url'];
+$searchTerm = $config['search-term'];
 
 // INITIALIZE THE TABLE
 

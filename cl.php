@@ -38,7 +38,7 @@ require_once 'SlutMail.php';
 require_once 'TrimUrl.php';
 require_once 'owner.php';
 require_once 'grepper.php';
-
+// require_once '';
 $owner = new owner();
 
 // Grepper helps parse out pieces of information from the Craigslist URL
@@ -46,6 +46,8 @@ $grepper = new grepper();
 
 // Curl retrieves URLs
 $curl = new Curl();
+
+
 $cityUrl = "http://omaha.craigslist.org";
 $searchTerm = "/search/cas/?query=w4m";
 

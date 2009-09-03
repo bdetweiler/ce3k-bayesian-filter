@@ -30,21 +30,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE  *
  * POSSIBILITY OF SUCH DAMAGE.                                                 *
  ******************************************************************************/
+require_once('spyc.php');
+
 
 class owner
 {
-    const API_LIMIT = 99;
 
     // database access parameters
     // alter this as per your configuration
-    private $host = "127.0.0.1";
+    private $spyc = null;
+    private $connection = null;
+
+    // Connection information
+    private $host = "";
     private $user = "";
     private $pass = "";
-    private $db   = "craigslist";
-    private $connection = null;
+    private $db   = "";
+
+    // tr.im limit
+    private $apiLimit = 0;
 
     public function __construct()
     {
+        $this->spyc = new Spyc();
+        $config = $this->spyc->YAMLLoad('../ce3k.yaml');
+        $this->host = $config['host'];
+        $this->user = $config['user'];
+        $this->pass = $config['pass'];
+        $this->db = $config['database'];
+        $this->apiLimit = $config['trim']['api-limit'];
+
         // open a connection to the database server
         $this->connection = pg_connect("host=$this->host dbname=$this->db user=$this->user password=$this->pass");
         if(!$this->connection)
@@ -269,8 +284,8 @@ class owner
 
         $count = pg_num_rows($result);
 
-        // If it's less than API_LIMIT, we haven't hit our limit yet.
-        if($count < self::API_LIMIT)
+        // If it's less than $this->apiLimit, we haven't hit our limit yet.
+        if($count < $this->apiLimit)
             $rval = false;
 
         return $rval;

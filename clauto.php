@@ -35,18 +35,20 @@
  *******************************************************************************/
 
 require_once 'curl.php';
-require_once 'SlutMail.php';
-require_once 'TrimUrl.php';
 require_once 'owner.php';
 require_once 'grepper.php';
+require_once 'spyc.php';
 
 // One of these days, I'll decide on upper or lower case.
 $curl = new Curl();
 $owner = new owner();
 $grepper = new grepper();
+$spyc = new Spyc();
 
-$cityUrl = "http://omaha.craigslist.org";
-$search = "/search/cas/?query=w4m";
+$config = $this->spyc->YAMLLoad('../ce3k.yaml');
+
+$cityUrl = $config['city-url'];
+$searchTerm = $config['search-term'];
 
 // Grab the main page
 // We'll do this roughly every 10 minutes
