@@ -58,13 +58,14 @@ $grepper = new grepper();
 $tokenizer = new Tokenizer();
 $spyc = new Spyc();
 
-$config = $this->spyc->YAMLLoad('../ce3k.yaml');
+$config = $spyc->YAMLLoad('../ce3k.yaml');
 
 $memoryLimit = $config['memory-limit'];
 
 // Depending on your corpus size, the default memory will need to be set to
 // something fairly large, as the hashtable takes up a good deal of memory.
 ini_set("memory_limit", $memoryLimit);
+
 
 // This is the amount of spam tolerance we are willing to accomodate for.
 $threshold = $config['bayes']['threshold'];
@@ -78,12 +79,16 @@ $searchTerm = $config['search-term'];
 $allPostings = $owner->getAllCLPostings();
 $postingArr = pg_fetch_all($allPostings);
 $len = count($postingArr);
+$userAgentLen = strlen(trim($_SERVER['HTTP_USER_AGENT']));
 
 for($i = 0; $i < $len; ++$i)
 {
     // Print out the percentage done
-    // $percentLeft = round(100 * ($i / $len)) . "%";
-    // print_r($postingArr);
+    if(!$userAgentLen)
+    {
+        $percentLeft = round(100 * ($i / $len)) . "%";
+        print($percentLeft);
+    }
 
     // Tokenize the subject and the body of each post in the database
     $tokenizer->tokenize($postingArr[$i]['subject'],
@@ -94,8 +99,11 @@ for($i = 0; $i < $len; ++$i)
                          false);
 
     // Use the backspace trick to show a running percentage
-    //for($j = 0; $j < strlen($percentLeft); ++$j)
-        //print(chr(8));
+    if(!$userAgentLen)
+    {
+        for($j = 0; $j < strlen($percentLeft); ++$j)
+            print(chr(8));
+    }
 }
 
 // Finalize the probabilities of each word
@@ -108,12 +116,13 @@ $tokenizer->finalize();
 // We'll do this roughly every 10 minutes
 $response = $curl->get($cityUrl . $searchTerm);
 
+
 // Explode on <p> tags and iterate through each line
 $mainbody = explode("<p>", $response->body);
 $links = array();
 foreach($mainbody as $line)
 {
-    $pattern = '/(\/cas\/[0-9]*?\.html)"/';
+    $pattern = '/(\/cas\/[0-9]*\.html)/';
     preg_match($pattern, $line, $matches);
     if(count($matches) == 2)
     {
@@ -127,18 +136,19 @@ foreach($mainbody as $line)
 
 $mainbody = implode($mainbody);
 
+$hamCount = 0;
 /* At this point, $links contains the current RSS urls.
  */
 foreach($links as $link)
 {
-    $pattern = '/\/cas\/([0-9]*?)\.html/';
+    $pattern = '/\/cas\/([0-9]*)\.html/';
     $matches = null;
     preg_match($pattern, $link, $matches);
+
     if(count($matches) == 2)
     {
-        $postid = $matches[1];
 
-        $hasPic = $grepper->hasPic($mainbody, $postid);
+        $postid = $matches[1];
 
         // Go get the link
         $response = $curl->get($link);
@@ -202,11 +212,16 @@ foreach($links as $link)
 
         // If we're within our threshold, print the link and the probability
         if($pSpam < $threshold)
+        {
             print("<a href=\"$link\">$slashsubject</a>  -- " 
                  . round($pSpam * 100) 
                  . "% SPAM<br />\n");
-        
+            ++$hamCount;
+        }
     }
 }
+
+if(!$hamCount)
+    print("Sorry, there were no valid postings. Try again later.\n");
 
 ?>

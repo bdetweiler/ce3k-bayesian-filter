@@ -56,6 +56,7 @@ class grepper
     {
         $rval = false;
 
+        $matches = null;
         // Has this been flagged?
         $pattern = self::FLAGGED;
         preg_match($pattern, $text, $matches);
@@ -69,6 +70,7 @@ class grepper
     static function deletedByAuthor($text)
     {
         $rval = false;
+        $matches = null;
 
         // Has this been flagged?
         $pattern = self::DELETED;
@@ -82,6 +84,7 @@ class grepper
 
     static function getUserBody($text)
     {
+        $matches = null;
         $rval = "";
         $pattern = self::USERBODY;
         preg_match($pattern, $text, $matches);
@@ -110,6 +113,7 @@ class grepper
     static function getAge($text)
     {
         $rval = "";
+        $matches = null;
 
         $pattern = self::AGE;
         preg_match($pattern, $text, $matches);
@@ -124,6 +128,7 @@ class grepper
     static function getPostId($text)
     {
         $rval = "";
+        $matches = null;
 
         // Grab the postid
         $pattern = self::POST_ID;
@@ -138,6 +143,7 @@ class grepper
     static function getCLEmail($text)
     {
         $rval = "";
+        $matches = null;
         $pattern = self::MAILTO;
         preg_match($pattern, $text, $matches);
 
@@ -174,6 +180,8 @@ class grepper
 
     static function pageNotFound($text)
     {
+
+        $matches = null;
         $rval = false;
         $pattern = self::NOTFOUND;
         preg_match($pattern, $text, $matches);
@@ -186,19 +194,25 @@ class grepper
 
     static function hasPic($text, $post_id)
     {
-        
+       
+        $matches = null;
         $rval = false;
 
-        $pattern = '/' . $post_id . '.html">.*?<\/a> <span class="p"> pic/';
+        if(substr($post_id, 0, 1) == "/")
+            $post_id = substr($post_id, 1, strlen($post_id));
+        $pattern = '/' . $post_id . '.html">.*<\/a> <span class="p"> pic/';
 
-
+print($pattern);
         preg_match($pattern, $text, $matches);
-
-        $pattern = '/' . $post_id . '.html">.*?<\/font> <span class="p"> pic/';
-
-
         if(count($matches))
             $rval = true;
+
+        $pattern = '/' . $post_id . '.html">.*<\/font> <span class="p"> pic/';
+print($pattern);
+        preg_match($pattern, $text, $matches);
+        if(count($matches))
+            $rval = true;
+
 
         return $rval;
     }
@@ -206,6 +220,7 @@ class grepper
     static function getSubject($text)
     {
         $rval = "";
+        $matches = null;
         $pattern = self::SUBJECT;
         preg_match($pattern, $text, $matches);
 
@@ -218,6 +233,7 @@ class grepper
     static function getLocation($text)
     {
         $rval = "";
+        $matches = null;
         $pattern = self::LOCATION; 
         preg_match($pattern, $text, $matches);
 
@@ -230,6 +246,7 @@ class grepper
     static function getPostDate($text)
     {
         $rval = "";
+        $matches = null;
 
         // Grab the post date
         //const POSTDATE = '/Date: (.*?)<.*/';

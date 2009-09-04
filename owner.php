@@ -299,10 +299,6 @@ class owner
         $text = "<a href=\"/cas/1185829187.html\"> What's for dessert? - w4m - 20 -</a> <span class=\"p\"> pic";
         $post_id = "1185829187";
         $rval = false;
-        $pattern = $haspic;
-        preg_match($pattern, $text, $matches);
-
-        print("matches: " . count($matches) . "\n");
 
 
 
@@ -312,7 +308,6 @@ class owner
             or die("Error in query: $query. " . pg_last_error($owner->connection));
 
         $count = pg_num_rows($result);
-
 
     }
 }
