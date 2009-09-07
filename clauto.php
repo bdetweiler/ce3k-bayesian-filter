@@ -45,7 +45,7 @@ $owner = new owner();
 $grepper = new grepper();
 $spyc = new Spyc();
 
-$config = $this->spyc->YAMLLoad('../ce3k.yaml');
+$config = $spyc->YAMLLoad('../ce3k.yaml');
 
 $cityUrl = $config['city-url'];
 $searchTerm = $config['search-term'];
