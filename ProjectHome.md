@@ -1,0 +1,1 @@
+Casual Encounters of the Third Kind is a Bayesian classifier for Craigslist Casual Encounters (in particular, w4m). Since the w4m section is the most abused section of Casual Encounters, this project is aimed at filtering out posts that are likely spam, and showing only posts that are relevant.
