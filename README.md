@@ -1,4 +1,4 @@
-I did this project for This article appeared in 2600: The Hacker Quarterly, Volume 27, Number 2.
+This article appeared in 2600: The Hacker Quarterly, Volume 27, Number 2 (2010)
 
 Casual Encounters of the Third Kind:
 ====================================
